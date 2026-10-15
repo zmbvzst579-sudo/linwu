@@ -5,11 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#060607">
 <title>凛芜 · 悲天悯人</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://music.163.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Serif+SC:wght@200;300;400&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="images/sidai.webp">
-<link rel="preload" as="image" href="images/image1.webp">
+
+<link rel="preload" as="image" href="images/sidai.webp" fetchpriority="high">
+<link rel="preload" as="image" href="images/image1.webp" fetchpriority="high">
 
 <style>
 :root{
@@ -32,7 +35,7 @@ body{
   overflow:hidden;letter-spacing:.08em;
 }
 
-/* ========== 开屏（动画时长全部拉长） ========== */
+/* ========== 开屏 ========== */
 #intro{
   position:fixed;inset:0;z-index:1000;background:#030304;overflow:hidden;cursor:pointer;
   transition:opacity 2.8s var(--ease-soft), visibility 2.8s;
@@ -54,7 +57,6 @@ body{
 .motes i{position:absolute;border-radius:50%;background:rgba(232,230,227,.5);filter:blur(.5px);opacity:0;animation:mote linear infinite;}
 @keyframes mote{0%{transform:translate(0,20px) scale(.6);opacity:0;}20%{opacity:.32;}80%{opacity:.2;}100%{transform:translate(14px,-90px) scale(1);opacity:0;}}
 
-/* ★ intro-center 淡出时长 1.6s → 3.2s */
 .intro-center{
   position:absolute;inset:0;z-index:5;display:grid;place-items:center;
   transition:transform 3.2s var(--ease-soft), opacity 3.2s var(--ease-soft), filter 3.2s var(--ease-soft);
@@ -74,7 +76,6 @@ body{
 .env-body{position:absolute;inset:0;z-index:1;border-radius:2px;background:linear-gradient(152deg,#1b1b20 0%,#101014 46%,#17171c 100%);
   box-shadow:0 22px 46px rgba(0,0,0,.9),0 4px 12px rgba(0,0,0,.8),inset 0 0 0 1px rgba(232,230,227,.05);}
 
-/* ★ 信纸升起：1.3s → 2.6s，延迟 .95s → 1.6s */
 .env-letter{
   position:absolute;z-index:2;left:7%;top:4%;width:86%;height:92%;border-radius:1px;
   background:linear-gradient(180deg,#ececea 0%,#cdcdca 52%,#a9a9a6 100%);
@@ -87,7 +88,6 @@ body{
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.28 0 0 0 0 0.26 0 0 0 0.4 0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23f)'/%3E%3C/svg%3E");
   opacity:.35;mix-blend-mode:multiply;pointer-events:none;}
 .env-letter-text{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--serif-cn);font-size:clamp(13px,1.7vw,17px);font-weight:300;letter-spacing:.4em;text-indent:.4em;color:rgba(26,24,22,.8);white-space:nowrap;opacity:0;
-  /* ★ 信件文字出现：1.1s → 2.2s，延迟 1s → 1.8s */
   transition:opacity 2.2s ease 1.8s;z-index:1;}
 #intro.opened .env-letter-text{opacity:1;}
 
@@ -101,7 +101,6 @@ body{
              linear-gradient(45deg,transparent calc(50% - .5px),rgba(255,255,255,.042) 50%,transparent calc(50% + .5px));
   pointer-events:none;}
 
-/* ★ 翻盖打开：1.2s → 2.4s，延迟 .45s → 1.2s */
 .env-flap{
   position:absolute;top:0;left:0;width:100%;height:100%;z-index:5;clip-path:polygon(0 0,100% 0,50% 55%);
   background:linear-gradient(180deg,#202025 0%,#16161a 46%,#0d0d11 100%);
@@ -111,7 +110,6 @@ body{
 }
 .env-flap::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.035),transparent 40%);}
 
-/* ★ 蜡封溶解：0.7s → 1.4s，延迟 .15s → .6s */
 .env-wax{
   position:absolute;z-index:12;left:50%;top:55%;
   width:calc(var(--ew) * .185);height:calc(var(--ew) * .185);
@@ -374,12 +372,10 @@ body.music-playing .icon-pause{display:block;}
 </head>
 <body>
 
-<!-- ★ 背景音乐：手机需要 playsinline -->
 <audio id="bgAudio" preload="metadata" loop playsinline>
   <source src="https://music.163.com/song/media/outer/url?id=483378334.mp3" type="audio/mpeg">
 </audio>
 
-<!-- 开屏 -->
 <div id="intro" role="button" tabindex="0" aria-label="轻触任意处展开信封">
   <div class="velvet"></div>
   <div class="intro-vig"></div>
@@ -581,14 +577,32 @@ body.music-playing .icon-pause{display:block;}
 (function(){
   'use strict';
 
+  /* ★ 核心优化：页面打开时悄悄预加载后续所有图 */
+  (function preloadRest(){
+    var rest = [
+      'images/image4.webp',
+      'images/image5.webp',
+      'images/image2.webp',
+      'images/lily1.webp',
+      'images/lily2.webp',
+      'images/lily3.webp'
+    ];
+    var cb = window.requestIdleCallback || function(fn){ setTimeout(fn, 400); };
+    cb(function(){
+      rest.forEach(function(src){
+        var img = new Image();
+        img.decoding = 'async';
+        img.src = src;
+      });
+    });
+  })();
+
   var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var IS_MOBILE = window.innerWidth < 760;
 
-  /* ★ 开屏时序整体拉长：给图片留加载时间 */
-  var T_REVEAL = RM ? 0 : (IS_MOBILE ? 4500 : 5500);  // 信件展开 → 开始淡出
-  var T_HIDE   = RM ? 200 : (IS_MOBILE ? 8500 : 10000); // 完全消失
+  var T_REVEAL = RM ? 0 : (IS_MOBILE ? 4500 : 5500);
+  var T_HIDE   = RM ? 200 : (IS_MOBILE ? 8500 : 10000);
 
-  /* 微尘 */
   (function(){
     if (RM || IS_MOBILE) return;
     var box = document.getElementById('motes');
@@ -606,7 +620,6 @@ body.music-playing .icon-pause{display:block;}
     }
   })();
 
-  /* 花瓣 */
   (function(){
     if (RM) return;
     var box = document.getElementById('petals');
@@ -627,7 +640,6 @@ body.music-playing .icon-pause{display:block;}
     }
   })();
 
-  /* ===== 音乐（<audio> 自动播放） ===== */
   var bgAudio = document.getElementById('bgAudio');
 
   function syncMusicIcon(){
@@ -635,7 +647,6 @@ body.music-playing .icon-pause{display:block;}
     var playing = !bgAudio.paused && !bgAudio.ended;
     document.body.classList.toggle('music-playing', playing);
   }
-
   function playMusic(){
     if (!bgAudio) return;
     bgAudio.play().catch(function(){ syncMusicIcon(); });
@@ -664,7 +675,6 @@ body.music-playing .icon-pause{display:block;}
     });
   }
 
-  /* ===== 开屏 ===== */
   var intro = document.getElementById('intro');
   var opened = false;
 
@@ -672,7 +682,7 @@ body.music-playing .icon-pause{display:block;}
     if (opened) return;
     opened = true;
     intro.classList.add('opened');
-    playMusic();  // ★ 用户主动点击，浏览器允许自动播放
+    playMusic();
     setTimeout(function(){
       intro.classList.add('gone');
       document.body.classList.add('reveal');
@@ -692,7 +702,6 @@ body.music-playing .icon-pause{display:block;}
   });
   setTimeout(function(){ if (!opened) openIntro(); }, 20000);
 
-  /* ===== 分页 ===== */
   var pages    = document.querySelectorAll('.page');
   var navLinks = document.querySelectorAll('#navLinks a');
   var railDots = document.querySelectorAll('#rail i');
