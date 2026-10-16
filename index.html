@@ -81,14 +81,14 @@ body{
   background:linear-gradient(180deg,#ececea 0%,#cdcdca 52%,#a9a9a6 100%);
   box-shadow:0 -12px 26px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 1px rgba(0,0,0,.28);
   opacity:0;transform:translateY(0);
-  transition:transform 2.6s var(--ease-soft) 1.6s, opacity 1.4s ease 1.6s;
+  transition:transform 2.8s var(--ease-soft) 3.0s, opacity 1.2s ease 3.0s;
   overflow:hidden;
 }
 .env-letter::before{content:"";position:absolute;inset:0;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.28 0 0 0 0 0.26 0 0 0 0.4 0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23f)'/%3E%3C/svg%3E");
   opacity:.35;mix-blend-mode:multiply;pointer-events:none;}
 .env-letter-text{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--serif-cn);font-size:clamp(13px,1.7vw,17px);font-weight:300;letter-spacing:.4em;text-indent:.4em;color:rgba(26,24,22,.8);white-space:nowrap;opacity:0;
-  transition:opacity 2.2s ease 1.8s;z-index:1;}
+  transition:opacity 2.2s ease 3.4s;z-index:1;}
 #intro.opened .env-letter-text{opacity:1;}
 
 .env-front{position:absolute;inset:0;z-index:3;}
@@ -101,12 +101,19 @@ body{
              linear-gradient(45deg,transparent calc(50% - .5px),rgba(255,255,255,.042) 50%,transparent calc(50% + .5px));
   pointer-events:none;}
 
+/* —— 关键修复：翻盖翻到背后后淡出并隐藏，避免残留黑色 —— */
 .env-flap{
-  position:absolute;top:0;left:0;width:100%;height:100%;z-index:5;clip-path:polygon(0 0,100% 0,50% 55%);
+  position:absolute;top:0;left:0;width:100%;height:100%;z-index:5;
+  clip-path:polygon(0 0,100% 0,50% 55%);
   background:linear-gradient(180deg,#202025 0%,#16161a 46%,#0d0d11 100%);
-  transform-origin:50% 0%;transform:rotateX(0deg);
-  transition:transform 2.4s cubic-bezier(.55,.05,.25,1) 1.2s;
-  backface-visibility:hidden;
+  transform-origin:50% 0%;
+  transform:rotateX(0deg);
+  transition:transform 2.1s cubic-bezier(.55,.05,.25,1) 1.0s,
+             opacity .9s ease 2.2s,
+             visibility 0s linear 3.1s;
+  backface-visibility:visible;
+  -webkit-backface-visibility:visible;
+  will-change:transform,opacity;
 }
 .env-flap::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.035),transparent 40%);}
 
@@ -118,12 +125,14 @@ body{
   background:#08080b;
   box-shadow:0 0 0 1px rgba(232,230,227,.09),0 3px 6px rgba(0,0,0,.6),inset 0 0 0 1px rgba(232,230,227,.04);
   display:grid;place-items:center;
-  transition:transform 1.4s cubic-bezier(.4,0,.85,.25) .6s, opacity 1.2s ease .6s;
+  transition:transform 1.4s cubic-bezier(.4,0,.85,.25) .5s, opacity 1.2s ease .5s;
 }
 .env-wax::after{content:"";position:absolute;inset:16%;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(232,230,227,.07);}
 .env-wax svg{width:66%;height:66%;display:block;opacity:.95;}
+
+/* 打开状态 */
 #intro.opened .env-wax{transform:scale(.22) rotate(140deg);opacity:0;}
-#intro.opened .env-flap{transform:rotateX(-180deg);}
+#intro.opened .env-flap{transform:rotateX(-180deg);opacity:0;visibility:hidden;}
 #intro.opened .env-letter{opacity:1;transform:translateY(-58%);}
 
 .intro-hint{position:absolute;left:50%;bottom:9%;z-index:6;transform:translateX(-50%);font-family:var(--serif-cn);font-size:11.5px;letter-spacing:.72em;text-indent:.72em;color:var(--ink-35);animation:hint 5s ease-in-out infinite;transition:opacity .5s ease;white-space:nowrap;pointer-events:none;}
@@ -600,8 +609,9 @@ body.music-playing .icon-pause{display:block;}
   var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var IS_MOBILE = window.innerWidth < 760;
 
-  var T_REVEAL = RM ? 0 : (IS_MOBILE ? 4500 : 5500);
-  var T_HIDE   = RM ? 200 : (IS_MOBILE ? 8500 : 10000);
+  /* 开屏整体淡出时间：等信封动画（约 5.8s）走完再开始 */
+  var T_REVEAL = RM ? 0 : (IS_MOBILE ? 6000 : 6600);
+  var T_HIDE   = RM ? 200 : (IS_MOBILE ? 9200 : 10200);
 
   (function(){
     if (RM || IS_MOBILE) return;
